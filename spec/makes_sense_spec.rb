@@ -84,9 +84,7 @@ RSpec.describe MakesSense do
 
     let(:ruleset) { ruleset_class.new }
 
-    subject do
-      ->(n) { decision_table.execute(ruleset, n: n) }
-    end
+    subject { decision_table.with_ruleset(ruleset) }
 
     context "when a valid ruleset" do
       let(:ruleset_class) do
@@ -102,10 +100,10 @@ RSpec.describe MakesSense do
       end
 
       it "executes the rules" do
-        expect(subject.call(1)).to be(1)
-        expect(subject.call(3)).to be("Fizz")
-        expect(subject.call(5)).to be("Buzz")
-        expect(subject.call(15)).to be("FizzBuzz")
+        expect(subject.call(n: 1)).to be(1)
+        expect(subject.call(n: 3)).to be("Fizz")
+        expect(subject.call(n: 5)).to be("Buzz")
+        expect(subject.call(n: 15)).to be("FizzBuzz")
       end
     end
   end

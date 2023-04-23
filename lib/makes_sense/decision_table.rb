@@ -48,25 +48,27 @@ module MakesSense
       end
     end
 
-    def execute(ruleset, **kwargs)
-      expanded_rows = expand_rows
+    def with_ruleset(ruleset)
+      ->(**kwargs) do
+        expanded_rows = expand_rows
 
-      ruleset_results = @conditions.map do |condition|
-        method_kwarg_names = ruleset.method(condition.name).parameters.map { |parameter| parameter[1] }
-        args = method_kwarg_names.map { |kwarg_name| kwargs[kwarg_name] }
-        ruleset.public_send(condition.name, *args)
-      end
+        ruleset_results = @conditions.map do |condition|
+          method_kwarg_names = ruleset.method(condition.name).parameters.map { |parameter| parameter[1] }
+          args = method_kwarg_names.map { |kwarg_name| kwargs[kwarg_name] }
+          ruleset.public_send(condition.name, *args)
+        end
 
-      result_row = @result_table.rows.find do |row|
-        row.conditions == ruleset_results
-      end
+        result_row = @result_table.rows.find do |row|
+          row.conditions == ruleset_results
+        end
 
-      if result_row.results.respond_to?(:call)
-        method_kwarg_names = result_row.results.parameters.map { |parameter| parameter[1] }
-        args = method_kwarg_names.map { |kwarg_name| kwargs[kwarg_name] }
-        result_row.results.call(*args)
-      else
-        result_row.results
+        if result_row.results.respond_to?(:call)
+          method_kwarg_names = result_row.results.parameters.map { |parameter| parameter[1] }
+          args = method_kwarg_names.map { |kwarg_name| kwargs[kwarg_name] }
+          result_row.results.call(*args)
+        else
+          result_row.results
+        end
       end
     end
 
