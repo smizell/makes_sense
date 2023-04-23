@@ -7,5 +7,11 @@ module MakesSense
     def f
       false
     end
+
+    class Any; end
+
+    def any
+      Any.new
+    end
   end
 end

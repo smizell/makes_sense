@@ -2,6 +2,10 @@ require_relative "result"
 require_relative "values"
 
 module MakesSense
+  Condition = Struct.new(:name, :values)
+  ResultTable = Struct.new(:rows)
+  Row = Struct.new(:conditions, :results)
+
   class DecisionTable
     def initialize(name, conditions, result_table)
       @name = name
@@ -18,7 +22,7 @@ module MakesSense
     def validate
       cond_values = @conditions.map(&:values)
       cond_possibilities = cond_values[0].product(*cond_values[1..])
-      result_possibilities = @result_table.rows.map(&:conditions)
+      result_possibilities = expanded_rows.map(&:conditions)
 
       errors = []
 
@@ -45,23 +49,43 @@ module MakesSense
 
     private
 
-    Value = Struct.new(:value)
+    def expanded_rows
+      new_rows = []
 
-    def possibility_graph
-      Graph.new.tap do |graph|
-        @conditions.reduce do |cond1, cond2|
-          graph.add_edge(cond1, cond2)
-          cond2
+      @result_table.rows.each do |row|
+        has_any = row.conditions.any? { |condition| condition.is_a?(Values::Any) }
+
+        unless has_any
+          new_rows << row
+          next
         end
 
-        binding.pry
+        collected = []
+        current = []
+
+        row.conditions.each_with_index do |condition, index|
+          case condition
+          when Values::Any
+            collected << current
+            collected << @conditions[index].values
+            current = []
+          else
+            current << condition
+          end
+        end
+
+        collected << current unless current.empty?
+
+        new_conditions = collected.reduce { |a, b| a.product(b) }
+
+        new_conditions.each do |conditions|
+          new_rows << Row.new(conditions, row.results)
+        end
       end
+
+      new_rows
     end
   end
-
-  Condition = Struct.new(:name, :values)
-  ResultTable = Struct.new(:rows)
-  Row = Struct.new(:conditions, :results)
 
   class DecisionTableDsl
     include Values
