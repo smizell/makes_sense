@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "pry"
 require "makes_sense"
 
 RSpec.configure do |config|
