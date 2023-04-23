@@ -7,22 +7,23 @@ module MakesSense
   Row = Struct.new(:conditions, :results)
 
   class DecisionTable
-    def initialize(name, conditions, result_table)
+    def initialize(name, conditions, result_table, args)
       @name = name
       @conditions = conditions
       @result_table = result_table
+      @args = args
     end
 
     def self.define(name, &block)
       dsl = DecisionTableDsl.new
       dsl.instance_eval(&block)
-      new(name, dsl.conditions, dsl.result_table)
+      new(name, dsl.conditions, dsl.result_table, dsl.args)
     end
 
     def validate
       cond_values = @conditions.map(&:values)
       cond_possibilities = cond_values[0].product(*cond_values[1..])
-      result_possibilities = expanded_rows.map(&:conditions)
+      result_possibilities = expand_rows.map(&:conditions)
 
       errors = []
 
@@ -47,9 +48,32 @@ module MakesSense
       end
     end
 
+    def execute(ruleset, **kwargs)
+      expanded_rows = expand_rows
+
+      ruleset_results = @conditions.map do |condition|
+        method_kwarg_names = ruleset.method(condition.name).parameters.map { |parameter| parameter[1] }
+        args = method_kwarg_names.map { |kwarg_name| kwargs[kwarg_name] }
+        ruleset.public_send(condition.name, *args)
+      end
+
+      result_row = @result_table.rows.find do |row|
+        row.conditions == ruleset_results
+      end
+
+      if result_row.results.respond_to?(:call)
+        method_kwarg_names = result_row.results.parameters.map { |parameter| parameter[1] }
+        args = method_kwarg_names.map { |kwarg_name| kwargs[kwarg_name] }
+        result_row.results.call(*args)
+      else
+        result_row.results
+      end
+    end
+
     private
 
-    def expanded_rows
+    # TODO: needs to be pulled out of this class
+    def expand_rows
       new_rows = []
 
       @result_table.rows.each do |row|
@@ -90,11 +114,16 @@ module MakesSense
   class DecisionTableDsl
     include Values
 
-    attr_reader :conditions, :result_table
+    attr_reader :args, :conditions, :result_table
 
     def initialize
+      @args = []
       @conditions = []
       @result_table = nil
+    end
+
+    def arg(name)
+      @args << name
     end
 
     def cond(name, type)

@@ -61,8 +61,51 @@ RSpec.describe MakesSense do
         end
       end
 
-      it "build the correct rows" do
+      it "builds the correct rows" do
         expect(subject).to be_success
+      end
+    end
+  end
+
+  context "#execute" do
+    let(:decision_table) do
+      MakesSense::DecisionTable.define "FizzBuzz" do
+        cond :divisible_by_three?, :bool
+        cond :divisible_by_five?, :bool
+
+        table do
+          row [f, f], ->(n) { n }
+          row [t, f], "Fizz"
+          row [f, t], "Buzz"
+          row [t, t], "FizzBuzz"
+        end
+      end
+    end
+
+    let(:ruleset) { ruleset_class.new }
+
+    subject do
+      ->(n) { decision_table.execute(ruleset, n: n) }
+    end
+
+    context "when a valid ruleset" do
+      let(:ruleset_class) do
+        Class.new do
+          def divisible_by_three?(n)
+            (n % 3) == 0
+          end
+
+          def divisible_by_five?(n)
+            (n % 5) == 0
+          end
+        end
+      end
+
+      it "executes the rules" do
+        expect(subject.call(1)).to be(1)
+        expect(subject.call(3)).to be("Fizz")
+        expect(subject.call(5)).to be("Buzz")
+        expect(subject.call(15)).to be("FizzBuzz")
       end
     end
   end
