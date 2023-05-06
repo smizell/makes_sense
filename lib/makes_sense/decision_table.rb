@@ -97,9 +97,9 @@ module MakesSense
       new_rows = []
 
       @result_table.rows.each_with_index do |row, row_index|
-        has_any = row.conditions.any? { |condition| condition.is_a?(Values::Any) }
+        needs_expansion = row.conditions.any? { |condition| condition.is_a?(Values::Any) }
 
-        unless has_any
+        unless needs_expansion
           new_rows << row
           next
         end
@@ -110,9 +110,12 @@ module MakesSense
         row.conditions.each_with_index do |condition, index|
           case condition
           when Values::Any
-            collected << current unless current.empty?
+            unless current.empty?
+              collected << current
+              current = []
+            end
+
             collected << @conditions[index].values
-            current = []
           else
             current << condition
           end
@@ -120,6 +123,9 @@ module MakesSense
 
         collected << current unless current.empty?
 
+        # When the `collected` length is `1`, it results in unexpected values with `#reduce`
+        # Checking for the length and only reducing when it's greater than one causes the
+        # resulting value to be as expected.
         new_conditions =
           if collected.length > 1
             collected.reduce { |a, b| a.product(b) }
