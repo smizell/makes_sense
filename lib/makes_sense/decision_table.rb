@@ -30,6 +30,7 @@ module MakesSense
       cond_possibilities.each do |cond_possibility|
         unless result_possibilities.include?(cond_possibility)
           errors << {
+            type: :missing,
             message: "Missing result condition: #{cond_possibility}",
             expected_conditions: cond_possibility,
             expected: {}.tap do |condition_map|
@@ -39,6 +40,20 @@ module MakesSense
             end
           }
         end
+      end
+
+      visited = []
+
+      result_possibilities.each do |result_possibility|
+        if visited.include?(result_possibility)
+          errors << {
+            type: :duplicate,
+            message: "Duplicate result: #{result_possibility}",
+            result: result_possibility
+          }
+        end
+
+        visited << result_possibility
       end
 
       if !errors.empty?

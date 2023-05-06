@@ -48,6 +48,26 @@ RSpec.describe MakesSense do
       end
     end
 
+    context "with duplicate rows" do
+      context "with a basic table" do
+        let(:decision_table) do
+          MakesSense::DecisionTable.define "FizzBuzz" do
+            cond :cond?, :bool
+
+            table do
+              row [f], 1
+              row [f], 2
+              row [t], 3
+            end
+          end
+        end
+
+        it "returns a failure" do
+          expect(subject).to be_failure
+        end
+      end
+    end
+
     context "with `any` as a value" do
       let(:decision_table) do
         MakesSense::DecisionTable.define "Uses `any`" do
