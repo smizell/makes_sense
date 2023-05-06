@@ -21,22 +21,22 @@ module MakesSense
     end
 
     def validate
-      cond_values = @conditions.map(&:values)
-      cond_possibilities = cond_values[0].product(*cond_values[1..])
-      result_possibilities = expand_rows
-      result_conditions = result_possibilities.map(&:conditions)
+      condition_values = @conditions.map(&:values)
+      possible_conditions = condition_values[0].product(*condition_values[1..])
+      expanded_rows = expand_rows
+      expanded_row_conditions = expanded_rows.map(&:conditions)
 
       errors = []
 
-      cond_possibilities.each do |cond_possibility|
-        unless result_conditions.include?(cond_possibility)
+      possible_conditions.each do |possible_condition|
+        unless expanded_row_conditions.include?(possible_condition)
           errors << {
             type: :missing,
-            message: "Missing result condition: #{cond_possibility}",
-            expected_conditions: cond_possibility,
+            message: "Missing result condition: #{possible_condition}",
+            expected_conditions: possible_condition,
             expected: {}.tap do |condition_map|
               @conditions.each_with_index do |condition, index|
-                condition_map[condition.name] = cond_possibility[index]
+                condition_map[condition.name] = possible_condition[index]
               end
             end
           }
@@ -45,18 +45,18 @@ module MakesSense
 
       visited = []
 
-      result_possibilities.each do |result_possibility|
-        found_index = visited.find_index(result_possibility.conditions)
+      expanded_rows.each do |row|
+        found_index = visited.find_index(row.conditions)
         if found_index
           errors << {
             type: :duplicate,
-            message: "Duplicate result #{result_possibility.conditions} for rows #{found_index} and #{result_possibility.row_index}",
-            result: result_possibility,
-            found_index: found_index
+            message: "Duplicate result #{row.conditions} for rows #{found_index} and #{row.row_index}",
+            row: row,
+            duplicate_index: found_index
           }
         end
 
-        visited << result_possibility.conditions
+        visited << row.conditions
       end
 
       if !errors.empty?
