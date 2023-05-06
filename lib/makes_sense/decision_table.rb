@@ -92,7 +92,9 @@ module MakesSense
 
     private
 
-    # TODO: needs to be pulled out of this class
+    # Expands rows where `any` is used
+    # It will replace an `any` with an array of the respective values.
+    # It will then take the product of those to create the correct number of new rows.
     def expand_rows
       new_rows = []
 

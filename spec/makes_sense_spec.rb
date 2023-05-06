@@ -56,7 +56,7 @@ RSpec.describe MakesSense do
 
             table do
               row [f], 1
-              row [f], 2
+              row [f], 2 # duplicate
               row [t], 3
             end
           end
