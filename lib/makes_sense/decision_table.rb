@@ -4,7 +4,7 @@ require_relative "values"
 module MakesSense
   Condition = Struct.new(:name, :values)
   ResultTable = Struct.new(:rows)
-  Row = Struct.new(:conditions, :results)
+  Row = Struct.new(:conditions, :results, :row_index)
 
   class DecisionTable
     def initialize(name, conditions, result_table, args)
@@ -23,12 +23,13 @@ module MakesSense
     def validate
       cond_values = @conditions.map(&:values)
       cond_possibilities = cond_values[0].product(*cond_values[1..])
-      result_possibilities = expand_rows.map(&:conditions)
+      result_possibilities = expand_rows
+      result_conditions = result_possibilities.map(&:conditions)
 
       errors = []
 
       cond_possibilities.each do |cond_possibility|
-        unless result_possibilities.include?(cond_possibility)
+        unless result_conditions.include?(cond_possibility)
           errors << {
             type: :missing,
             message: "Missing result condition: #{cond_possibility}",
@@ -45,15 +46,15 @@ module MakesSense
       visited = []
 
       result_possibilities.each do |result_possibility|
-        if visited.include?(result_possibility)
+        if visited.include?(result_possibility.conditions)
           errors << {
             type: :duplicate,
-            message: "Duplicate result: #{result_possibility}",
+            message: "Duplicate result #{result_possibility.conditions}",
             result: result_possibility
           }
         end
 
-        visited << result_possibility
+        visited << result_possibility.conditions
       end
 
       if !errors.empty?
@@ -93,7 +94,7 @@ module MakesSense
     def expand_rows
       new_rows = []
 
-      @result_table.rows.each do |row|
+      @result_table.rows.each_with_index do |row, row_index|
         has_any = row.conditions.any? { |condition| condition.is_a?(Values::Any) }
 
         unless has_any
@@ -125,7 +126,7 @@ module MakesSense
           end
 
         new_conditions.each do |conditions|
-          new_rows << Row.new(conditions, row.results)
+          new_rows << Row.new(conditions, row.results, row_index)
         end
       end
 
@@ -173,7 +174,7 @@ module MakesSense
     end
 
     def row(conditions, results)
-      @result_table.rows << Row.new(conditions, results)
+      @result_table.rows << Row.new(conditions, results, @result_table.rows.length)
     end
   end
 end
