@@ -7,8 +7,8 @@ RSpec.describe MakesSense do
     context "with complete table" do
       let(:decision_table) do
         MakesSense::DecisionTable.define "FizzBuzz" do
-          cond :divisible_by_three?, :bool
-          cond :divisible_by_five?, :bool
+          condition :divisible_by_three?, :bool
+          condition :divisible_by_five?, :bool
 
           table do
             row [f, f], :n
@@ -27,8 +27,8 @@ RSpec.describe MakesSense do
     context "with incomplete table" do
       let(:decision_table) do
         MakesSense::DecisionTable.define "FizzBuzz" do
-          cond :divisible_by_three?, :bool
-          cond :divisible_by_five?, :bool
+          condition :divisible_by_three?, :bool
+          condition :divisible_by_five?, :bool
 
           table do
             row [f, f], :n
@@ -52,7 +52,7 @@ RSpec.describe MakesSense do
       context "with a basic table" do
         let(:decision_table) do
           MakesSense::DecisionTable.define "FizzBuzz" do
-            cond :cond?, :bool
+            condition :cond?, :bool
 
             table do
               row [f], 1
@@ -70,7 +70,7 @@ RSpec.describe MakesSense do
       context "with a less-obvious example" do
         let(:decision_table) do
           MakesSense::DecisionTable.define "FizzBuzz" do
-            cond :cond?, :bool
+            condition :cond?, :bool
 
             table do
               row [any], 1
@@ -89,8 +89,8 @@ RSpec.describe MakesSense do
     context "with `any` as a value" do
       let(:decision_table) do
         MakesSense::DecisionTable.define "Uses `any`" do
-          cond :cond1?, :bool
-          cond :cond2?, :bool
+          condition :cond1?, :bool
+          condition :cond2?, :bool
 
           table do
             row [t, any], true
@@ -108,8 +108,8 @@ RSpec.describe MakesSense do
   context "#execute" do
     let(:decision_table) do
       MakesSense::DecisionTable.define "FizzBuzz" do
-        cond :divisible_by_three?, :bool
-        cond :divisible_by_five?, :bool
+        condition :divisible_by_three?, :bool
+        condition :divisible_by_five?, :bool
 
         table do
           row [f, f], ->(n) { n }

@@ -157,7 +157,7 @@ module MakesSense
       @args << name
     end
 
-    def cond(name, type)
+    def condition(name, type)
       values =
         case type
         when :bool then [t, f]
