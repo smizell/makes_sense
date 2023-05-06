@@ -66,6 +66,23 @@ RSpec.describe MakesSense do
           expect(subject).to be_failure
         end
       end
+
+      context "with a less-obvious example" do
+        let(:decision_table) do
+          MakesSense::DecisionTable.define "FizzBuzz" do
+            cond :cond?, :bool
+
+            table do
+              row [any], 1
+              row [t], 2
+            end
+          end
+        end
+
+        it "returns a failure" do
+          expect(subject).to be_failure
+        end
+      end
     end
 
     context "with `any` as a value" do

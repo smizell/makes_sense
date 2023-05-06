@@ -107,7 +107,7 @@ module MakesSense
         row.conditions.each_with_index do |condition, index|
           case condition
           when Values::Any
-            collected << current
+            collected << current unless current.empty?
             collected << @conditions[index].values
             current = []
           else
@@ -117,7 +117,12 @@ module MakesSense
 
         collected << current unless current.empty?
 
-        new_conditions = collected.reduce { |a, b| a.product(b) }
+        new_conditions =
+          if collected.length > 1
+            collected.reduce { |a, b| a.product(b) }
+          else
+            collected[0].map { |v| [v] }
+          end
 
         new_conditions.each do |conditions|
           new_rows << Row.new(conditions, row.results)
