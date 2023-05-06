@@ -46,11 +46,13 @@ module MakesSense
       visited = []
 
       result_possibilities.each do |result_possibility|
-        if visited.include?(result_possibility.conditions)
+        found_index = visited.find_index(result_possibility.conditions)
+        if found_index
           errors << {
             type: :duplicate,
-            message: "Duplicate result #{result_possibility.conditions}",
-            result: result_possibility
+            message: "Duplicate result #{result_possibility.conditions} for rows #{found_index} and #{result_possibility.row_index}",
+            result: result_possibility,
+            found_index: found_index
           }
         end
 
