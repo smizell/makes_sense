@@ -81,6 +81,7 @@ RSpec.describe MakesSense do
 
         it "returns a failure" do
           expect(subject).to be_failure
+          expect(subject.failure[0][:type]).to eq(:duplicate)
         end
       end
     end
