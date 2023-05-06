@@ -11,7 +11,7 @@ RSpec.describe MakesSense do
           condition :divisible_by_five?, :bool
 
           table do
-            row [f, f], :n
+            row [f, f], ->(n) { n }
             row [t, f], "Fizz"
             row [f, t], "Buzz"
             row [t, t], "FizzBuzz"
@@ -31,7 +31,7 @@ RSpec.describe MakesSense do
           condition :divisible_by_five?, :bool
 
           table do
-            row [f, f], :n
+            row [f, f], ->(n) { n }
             row [t, f], "Fizz"
             row [f, t], "Buzz"
           end
